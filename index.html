@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DCW — Detail Context Wow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── 비밀번호 화면 ── */
+    #pw-screen {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      z-index: 9999;
+    }
+    #pw-screen .pw-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #c80a1e;
+      text-transform: uppercase;
+    }
+    #pw-screen h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      color: #333;
+    }
+    #pw-screen input {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+      text-align: center;
+      width: 160px;
+      padding: 12px 16px;
+      border: 1px solid #e0e0e0;
+      border-radius: 0;
+      outline: none;
+      color: #333;
+    }
+    #pw-screen input:focus { border-color: #333; }
+    #pw-screen .pw-error {
+      font-size: 13px;
+      color: #c80a1e;
+      min-height: 18px;
+    }
+    #pw-screen button {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      background: #c80a1e;
+      color: #fff;
+      border: none;
+      padding: 10px 32px;
+      cursor: pointer;
+    }
+
+    :root {
+      --red:    #c80a1e;
+      --bg:     #ffffff;
+      --bg-alt: #f8f8f8;
+      --text:   #333333;
+      --muted:  #999999;
+      --border: #e0e0e0;
+
+      --cat-space:   #F5F0E8;
+      --cat-service: #FDF6F0;
+      --cat-product: #F2F2F2;
+      --cat-digital: #EEF3F8;
+      --cat-trust:   #F0F5F0;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 48px 32px;
+    }
+    header .label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--red);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    header h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    header p {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      max-width: 680px;
+      line-height: 1.7;
+    }
+    #case-count {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ── 필터 바 ── */
+    .filter-bar {
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-btn {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover {
+      color: var(--text);
+      border-color: var(--text);
+    }
+    .filter-btn.active {
+      color: var(--red);
+      border-color: var(--red);
+      background: transparent;
+    }
+
+    /* ── 그리드 ── */
+    .grid-wrapper {
+      padding: 32px 48px 64px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    /* ── 카드 ── */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      min-height: 280px;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .card-stripe {
+      height: 6px;
+      flex-shrink: 0;
+    }
+    .card-body {
+      padding: 20px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-id {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 2px;
+      white-space: nowrap;
+    }
+    .card-name {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .card-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+      flex: 1;
+    }
+
+    /* ── 카테고리 컬러 ── */
+    .cat-공간환경  .card-stripe { background: var(--cat-space); }
+    .cat-서비스경험 .card-stripe { background: var(--cat-service); }
+    .cat-제품패키징 .card-stripe { background: var(--cat-product); }
+    .cat-디지털UI  .card-stripe { background: var(--cat-digital); }
+    .cat-신뢰기억  .card-stripe { background: var(--cat-trust); }
+
+    .cat-공간환경  .card-tag { background: var(--cat-space); color: #7a6a52; }
+    .cat-서비스경험 .card-tag { background: var(--cat-service); color: #8a6a52; }
+    .cat-제품패키징 .card-tag { background: var(--cat-product); color: #666; }
+    .cat-디지털UI  .card-tag { background: var(--cat-digital); color: #4a6a8a; }
+    .cat-신뢰기억  .card-tag { background: var(--cat-trust); color: #4a6a4a; }
+
+    /* ── 모달 ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal {
+      background: var(--bg);
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-stripe {
+      height: 8px;
+    }
+    .modal-content {
+      padding: 32px 36px 40px;
+    }
+    .modal-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .modal-id {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .modal-tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 2px;
+    }
+    .modal-name {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .modal-body {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.8;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 22px;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── 로딩 / 에러 ── */
+    .state-msg {
+      text-align: center;
+      padding: 80px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .state-msg.error { color: #c80a1e; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 1199px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 767px) {
+      header { padding: 32px 24px 24px; }
+      header h1 { font-size: 24px; }
+      .filter-bar { padding: 16px 24px; }
+      .grid-wrapper { padding: 24px 24px 48px; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .modal-overlay { padding: 20px; }
+    }
+    @media (max-width: 479px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="pw-screen">
+  <div class="pw-label">iloom Detail Workshop</div>
+  <h2>Detail Context Wow</h2>
+  <input type="password" id="pw-input" placeholder="····" maxlength="10" autofocus>
+  <div class="pw-error" id="pw-error"></div>
+  <button id="pw-btn">입장</button>
+</div>
+
+<div id="main-content" style="display:none">
+
+<header>
+  <div class="label">iloom Detail Workshop</div>
+  <h1>Detail Context Wow</h1>
+  <p>'디테일'이라는 키워드를 제품이 아닌 라이프스타일과 서비스 층위로 올려서 생각해볼 수 있도록, 일상에서 발견한 디테일을 떠올려보고 그 맥락과 인사이트를 나눠보는 워크숍을 2월 나눔의 광장에서 진행했습니다. 아래는 그 케이스들의 아카이브입니다.</p>
+  <div id="case-count"></div>
+</header>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-cat="전체">전체</button>
+  <button class="filter-btn" data-cat="공간/환경">공간/환경</button>
+  <button class="filter-btn" data-cat="서비스/경험">서비스/경험</button>
+  <button class="filter-btn" data-cat="제품/패키징">제품/패키징</button>
+  <button class="filter-btn" data-cat="디지털/UI">디지털/UI</button>
+  <button class="filter-btn" data-cat="신뢰/기억">신뢰/기억</button>
+</div>
+
+<div class="grid-wrapper">
+  <div class="grid" id="grid"></div>
+</div>
+
+</div><!-- /main-content -->
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <div class="modal-stripe" id="modal-stripe"></div>
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close">×</button>
+      <div class="modal-meta">
+        <span class="modal-id" id="modal-id"></span>
+        <span class="modal-tag" id="modal-tag"></span>
+      </div>
+      <div class="modal-name" id="modal-name"></div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+
+
+  const CAT_CLASS = {
+    '공간/환경':  'cat-공간환경',
+    '서비스/경험': 'cat-서비스경험',
+    '제품/패키징': 'cat-제품패키징',
+    '디지털/UI':  'cat-디지털UI',
+    '신뢰/기억':  'cat-신뢰기억',
+  };
+
+  const CAT_COLOR = {
+    '공간/환경':  '#F5F0E8',
+    '서비스/경험': '#FDF6F0',
+    '제품/패키징': '#F2F2F2',
+    '디지털/UI':  '#EEF3F8',
+    '신뢰/기억':  '#F0F5F0',
+  };
+
+  let allCases = [];
+  let currentCat = '전체';
+
+  // CSV 파싱 (따옴표 처리 포함)
+  function parseCSV(text) {
+    const lines = [];
+    let cur = '', inQ = false, row = [];
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (c === '"') {
+        if (inQ && text[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === ',' && !inQ) {
+        row.push(cur); cur = '';
+      } else if ((c === '\n' || c === '\r') && !inQ) {
+        if (c === '\r' && text[i+1] === '\n') i++;
+        row.push(cur); cur = '';
+        lines.push(row); row = [];
+      } else {
+        cur += c;
+      }
+    }
+    if (cur || row.length) { row.push(cur); lines.push(row); }
+    return lines;
+  }
+
+  function catClass(cat) {
+    return CAT_CLASS[cat] || '';
+  }
+
+  function renderCards(cases) {
+    const grid = document.getElementById('grid');
+    if (!cases.length) {
+      grid.innerHTML = '<div class="state-msg">해당 카테고리 케이스가 없습니다.</div>';
+      return;
+    }
+    grid.innerHTML = cases.map(c => `
+      <div class="card ${catClass(c.category)}" data-id="${c.id}">
+        <div class="card-stripe"></div>
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-id">CASE ${String(c.id).padStart(2,'0')}</span>
+            <span class="card-tag">${c.category}</span>
+          </div>
+          <div class="card-name">${c.name}님의 발견</div>
+          <div class="card-text">${c.body}</div>
+        </div>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('.card').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = parseInt(el.dataset.id);
+        openModal(allCases.find(c => c.id === id));
+      });
+    });
+  }
+
+  function filterCases() {
+    const filtered = currentCat === '전체'
+      ? allCases
+      : allCases.filter(c => c.category === currentCat);
+    renderCards(filtered);
+    document.getElementById('case-count').textContent =
+      `${filtered.length}개 케이스`;
+  }
+
+  function openModal(c) {
+    const cat = c.category;
+    document.getElementById('modal-stripe').style.background = CAT_COLOR[cat] || '#f2f2f2';
+    document.getElementById('modal-id').textContent = `CASE ${String(c.id).padStart(2,'0')}`;
+    document.getElementById('modal-tag').textContent = cat;
+    document.getElementById('modal-tag').style.background = CAT_COLOR[cat] || '#f2f2f2';
+    document.getElementById('modal-name').textContent = `${c.name}님의 발견`;
+    document.getElementById('modal-body').textContent = c.body;
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentCat = btn.dataset.cat;
+      filterCases();
+    });
+  });
+
+
+  const SHEET_ID = '1MpuSo4CyREqxcaNJG7NFdB2RZV2bLADijAqlBUemf6E';
+  const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Cases`;
+
+  // 데이터 로드
+  fetch(CSV_URL)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.text();
+    })
+    .then(text => {
+      const rows = parseCSV(text);
+      allCases = rows.slice(1)
+        .filter(r => r.length >= 4 && r[0])
+        .map(r => ({
+          id:       parseInt(r[0]) || 0,
+          name:     r[1].trim(),
+          category: r[2].trim(),
+          body:     r[3].trim(),
+        }));
+      filterCases();
+    })
+    .catch(err => {
+      document.getElementById('grid').innerHTML =
+        `<div class="state-msg error">데이터를 불러오지 못했습니다.<br><small>${err.message}</small></div>`;
+    });
+
+  // ── 비밀번호 ──
+  const CORRECT = 'dcw';
+  function tryPassword() {
+    const val = document.getElementById('pw-input').value;
+    if (val === CORRECT) {
+      document.getElementById('pw-screen').style.display = 'none';
+      document.getElementById('main-content').style.display = 'block';
+    } else {
+      document.getElementById('pw-error').textContent = '비밀번호가 올바르지 않습니다.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  }
+  document.getElementById('pw-btn').addEventListener('click', tryPassword);
+  document.getElementById('pw-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') tryPassword();
+  });
+</body>
+</html>
